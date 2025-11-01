@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔬 Simulador de Compresión de Resorte</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 0;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            padding: 25px;
+            border-right: 2px solid #e9ecef;
+            min-height: 100vh;
+        }
+
+        .content-area {
+            padding: 25px;
+        }
+
+        .control-group {
+            margin-bottom: 30px;
+        }
+
+        .control-group h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .slider-container {
+            margin-bottom: 20px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .slider-value {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #f8f9fa;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: white;
+            border-bottom: 3px solid #3498db;
+            color: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .metrics-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            height: 300px;
+        }
+
+        .spring-container {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #springCanvas {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .results-box {
+            background: #e8f4fd;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .theory-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .formula {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            border-left: 4px solid #3498db;
+            font-size: 1.1em;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #2c3e50;
+            color: white;
+            margin-top: 30px;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3498db, transparent);
+            margin: 20px 0;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 Simulador de Compresión de Resorte</h1>
+            <div class="subtitle">Ley de Hooke y Cálculo Integral - Física Interactiva</div>
+        </header>
+
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="control-group">
+                    <h3>⚙️ Configuración</h3>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Constante k</span>
+                            <span class="slider-value" id="kValue">100 N/m</span>
+                        </div>
+                        <input type="range" id="kSlider" min="10" max="500" value="100" step="10">
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Longitud natural</span>
+                            <span class="slider-value" id="lengthValue">1.0 m</span>
+                        </div>
+                        <input type="range" id="lengthSlider" min="0.5" max="2.0" value="1.0" step="0.1">
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Compresión máxima</span>
+                            <span class="slider-value" id="maxCompressionValue">0.8 m</span>
+                        </div>
+                        <input type="range" id="maxCompressionSlider" min="0.1" max="0.9" value="0.8" step="0.1">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🔍 Cálculo Específico</h3>
+                    
+                    <div class="input-group">
+                        <label>Compresión inicial (m)</label>
+                        <input type="number" id="xInicial" min="0.0" max="0.9" value="0.0" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Compresión final (m)</label>
+                        <input type="number" id="xFinal" min="0.1" max="1.0" value="0.5" step="0.1">
+                    </div>
+                    
+                    <button onclick="calcularTrabajoEspecifico()" style="width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                        Calcular Trabajo
+                    </button>
+                </div>
+
+                <div class="theory-box">
+                    <h3>📚 Teoría - Ley de Hooke</h3>
+                    <div class="formula">
+                        F = -k × x &nbsp;&nbsp;&nbsp; W = ½ × k × x²
+                    </div>
+                    <p><strong>F</strong>: Fuerza del resorte (N)<br>
+                    <strong>k</strong>: Constante elástica (N/m)<br>
+                    <strong>x</strong>: Compresión (m)<br>
+                    <strong>W</strong>: Trabajo/Energía (J)</p>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Métricas principales -->
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Constante k</div>
+                        <div class="metric-value" id="metricK">100 N/m</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Longitud natural</div>
+                        <div class="metric-value" id="metricLength">1.0 m</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Trabajo calculado</div>
+                        <div class="metric-value" id="metricWork">0.00 J</div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Pestañas -->
+                <div class="tabs">
+                    <button class="tab active" onclick="openTab('tab1')">📊 Gráficos Completos</button>
+                    <button class="tab" onclick="openTab('tab2')">🎯 Cálculo Específico</button>
+                    <button class="tab" onclick="openTab('tab3')">🔍 Representación Física</button>
+                </div>
+
+                <!-- Contenido de pestañas -->
+                <div id="tab1" class="tab-content active">
+                    <h2>Análisis Gráfico Completo</h2>
+                    
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <canvas id="workChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="energyChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="forceChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="theory-box">
+                        <h3>📝 Explicación de los gráficos</h3>
+                        <p><strong>Interpretación física:</strong><br>
+                        - <strong>Trabajo</strong>: Energía que gastas para comprimir el resorte<br>
+                        - <strong>Energía potencial</strong>: Energía que el resorte almacena<br>
+                        - <strong>Fuerza</strong>: Esfuerzo necesario en cada punto<br><br>
+                        <strong>¡En un resorte ideal, el trabajo realizado es igual a la energía almacenada!</strong></p>
+                    </div>
+                </div>
+
+                <div id="tab2" class="tab-content">
+                    <h2>Cálculo de Trabajo Específico</h2>
+                    
+                    <div class="results-box">
+                        <div class="results-grid">
+                            <div>
+                                <h3>📋 Parámetros de Entrada</h3>
+                                <p><strong>Compresión inicial:</strong> <span id="inputInicial">0.0</span> m</p>
+                                <p><strong>Compresión final:</strong> <span id="inputFinal">0.5</span> m</p>
+                                <p><strong>Constante k:</strong> <span id="inputK">100</span> N/m</p>
+                            </div>
+                            <div>
+                                <h3>📊 Resultados</h3>
+                                <p><strong>Trabajo realizado:</strong> <span id="resultWork">0.00</span> J</p>
+                                <p><strong>Fuerza inicial:</strong> <span id="resultForceInicial">0.00</span> N</p>
+                                <p><strong>Fuerza final:</strong> <span id="resultForceFinal">0.00</span> N</p>
+                                <p><strong>Energía almacenada:</strong> <span id="resultEnergy">0.00</span> J</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="specificWorkChart"></canvas>
+                    </div>
+                </div>
+
+                <div id="tab3" class="tab-content">
+                    <h2>Representación Física del Resorte</h2>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Compresión actual</span>
+                            <span class="slider-value" id="currentCompressionValue">0.3 m</span>
+                        </div>
+                        <input type="range" id="currentCompressionSlider" min="0.0" max="0.8" value="0.3" step="0.01">
+                    </div>
+
+                    <div class="metrics-row">
+                        <div class="metric-card">
+                            <div class="metric-label">Trabajo realizado</div>
+                            <div class="metric-value" id="currentWork">0.00 J</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Fuerza actual</div>
+                            <div class="metric-value" id="currentForce">0.00 N</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Energía almacenada</div>
+                            <div class="metric-value" id="currentEnergy">0.00 J</div>
+                        </div>
+                    </div>
+
+                    <div class="spring-container">
+                        <canvas id="springCanvas" width="800" height="200"></canvas>
+                    </div>
+
+                    <div class="theory-box">
+                        <h3>Estado actual del resorte</h3>
+                        <p><strong>Compresión:</strong> <span id="stateCompression">0.30</span> m (<span id="statePercentage">30.0</span>% de la longitud natural)<br>
+                        <strong>Longitud actual:</strong> <span id="stateLength">0.70</span> m<br>
+                        <strong>Energía lista para liberar:</strong> <span id="stateEnergy">0.00</span> J</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>🔬 Simulador de Física - Ley de Hooke y Cálculo Integral • Creado con HTML5, CSS3 y JavaScript</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variables globales
+        let k = 100;
+        let naturalLength = 1.0;
+        let maxCompression = 0.8;
+        let currentCompression = 0.3;
+        let xInicial = 0.0;
+        let xFinal = 0.5;
+
+        // Charts
+        let workChart, energyChart, forceChart, comparisonChart, specificWorkChart;
+
+        // Funciones de cálculo físico
+        function calcularFuerza(k, x) {
+            return k * x; // F = k * x (valor absoluto)
+        }
+
+        function calcularTrabajo(k, x) {
+            return 0.5 * k * x * x; // W = ½ * k * x²
+        }
+
+        function calcularEnergia(k, x) {
+            return 0.5 * k * x * x; // U = ½ * k * x²
+        }
+
+        function calcularTrabajoEntrePuntos(k, xInicial, xFinal) {
+            return calcularTrabajo(k, xFinal) - calcularTrabajo(k, xInicial);
+        }
+
+        // Actualizar interfaz
+        function actualizarInterfaz() {
+            // Actualizar valores mostrados
+            document.getElementById('kValue').textContent = `${k} N/m`;
+            document.getElementById('lengthValue').textContent = `${naturalLength} m`;
+            document.getElementById('maxCompressionValue').textContent = `${maxCompression} m`;
+            document.getElementById('currentCompressionValue').textContent = `${currentCompression} m`;
+            
+            document.getElementById('metricK').textContent = `${k} N/m`;
+            document.getElementById('metricLength').textContent = `${naturalLength} m`;
+            
+            // Actualizar métricas principales
+            const trabajoEspecifico = calcularTrabajoEntrePuntos(k, xInicial, xFinal);
+            document.getElementById('metricWork').textContent = `${trabajoEspecifico.toFixed(2)} J`;
+            
+            // Actualizar pestaña 3
+            const trabajoActual = calcularTrabajo(k, currentCompression);
+            const fuerzaActual = calcularFuerza(k, currentCompression);
+            const energiaActual = calcularEnergia(k, currentCompression);
+            
+            document.getElementById('currentWork').textContent = `${trabajoActual.toFixed(2)} J`;
+            document.getElementById('currentForce').textContent = `${fuerzaActual.toFixed(2)} N`;
+            document.getElementById('currentEnergy').textContent = `${energiaActual.toFixed(2)} J`;
+            
+            document.getElementById('stateCompression').textContent = currentCompression.toFixed(2);
+            document.getElementById('statePercentage').textContent = (currentCompression / naturalLength * 100).toFixed(1);
+            document.getElementById('stateLength').textContent = (naturalLength - currentCompression).toFixed(2);
+            document.getElementById('stateEnergy').textContent = energiaActual.toFixed(2);
+            
+            // Redibujar gráficos y resorte
+            dibujarGraficos();
+            dibujarResorte();
+        }
+
+        // Sistema de pestañas
+        function openTab(tabName) {
+            // Ocultar todos los contenidos de pestañas
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            // Desactivar todos los botones de pestañas
+            const tabs = document.getElementsByClassName('tab');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            // Mostrar la pestaña específica
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Dibujar resorte
+        function dibujarResorte() {
+            const canvas = document.getElementById('springCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            const currentLength = naturalLength - currentCompression;
+            
+            // Limpiar canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Escalar para visualización
+            const scaleX = (width - 100) / naturalLength;
+            const startX = 50;
+            const endX = startX + currentLength * scaleX;
+            const centerY = height / 2;
+            
+            // Punto fijo
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(startX - 15, centerY - 40, 15, 80);
+            
+            // Resorte (forma de onda)
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            
+            const segments = 20;
+            const amplitude = 20;
+            
+            for (let i = 0; i <= segments; i++) {
+                const t = i / segments;
+                const x = startX + t * (endX - startX);
+                const y = centerY + amplitude * Math.sin(t * Math.PI * 4) * (1 - t * 0.5);
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // Punto móvil
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(endX, centerY - 25, 15, 50);
+            
+            // Etiquetas
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.fillText('Punto fijo', startX - 20, centerY - 60);
+            ctx.fillText('Punto móvil', endX, centerY - 60);
+            ctx.fillText(`Compresión: ${currentCompression.toFixed(2)} m`, width / 2 - 60, 30);
+            ctx.fillText(`Longitud: ${currentLength.toFixed(2)} m`, width / 2 - 50, 50);
+        }
+
+        // Dibujar gráficos
+        function dibujarGraficos() {
+            const compresiones = [];
+            const trabajos = [];
+            const energias = [];
+            const fuerzas = [];
+            
+            // Generar datos
+            for (let x = 0; x <= maxCompression; x += maxCompression / 50) {
+                compresiones.push(x);
+                trabajos.push(calcularTrabajo(k, x));
+                energias.push(calcularEnergia(k, x));
+                fuerzas.push(calcularFuerza(k, x));
+            }
+            
+            // Gráfico de Trabajo
+            if (workChart) workChart.destroy();
+            workChart = new Chart(document.getElementById('workChart'), {
+                type: 'line',
+                data: {
+                    labels: compresiones.map(x => x.toFixed(2)),
+                    datasets: [{
+                        label: 'Trabajo realizado',
+                        data: trabajos,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Trabajo para comprimir el resorte'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Compresión (m)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Trabajo (J)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de Energía
+            if (energyChart) energyChart.destroy();
+            energyChart = new Chart(document.getElementById('energyChart'), {
+                type: 'line',
+                data: {
+                    labels: compresiones.map(x => x.toFixed(2)),
+                    datasets: [{
+                        label: 'Energía potencial',
+                        data: energias,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Energía potencial almacenada'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Compresión (m)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Energía (J)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de Fuerza
+            if (forceChart) forceChart.destroy();
+            forceChart = new Chart(document.getElementById('forceChart'), {
+                type: 'line',
+                data: {
+                    labels: compresiones.map(x => x.toFixed(2)),
+                    datasets: [{
+                        label: 'Fuerza aplicada',
+                        data: fuerzas,
+                        borderColor: '#27ae60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        borderWidth: 3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Fuerza necesaria para comprimir'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Compresión (m)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Fuerza (N)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de Comparación
+            if (comparisonChart) comparisonChart.destroy();
+            comparisonChart = new Chart(document.getElementById('comparisonChart'), {
+                type: 'line',
+                data: {
+                    labels: compresiones.map(x => x.toFixed(2)),
+                    datasets: [
+                        {
+                            label: 'Trabajo',
+                            data: trabajos,
+                            borderColor: '#3498db',
+                            borderWidth: 3,
+                            fill: false
+                        },
+                        {
+                            label: 'Energía',
+                            data: energias,
+                            borderColor: '#e74c3c',
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Comparación: Trabajo vs Energía'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Compresión (m)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Energía/Trabajo (J)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Cálculo específico
+        function calcularTrabajoEspecifico() {
+            xInicial = parseFloat(document.getElementById('xInicial').value);
+            xFinal = parseFloat(document.getElementById('xFinal').value);
+            
+            const trabajo = calcularTrabajoEntrePuntos(k, xInicial, xFinal);
+            const fuerzaInicial = calcularFuerza(k, xInicial);
+            const fuerzaFinal = calcularFuerza(k, xFinal);
+            const energiaFinal = calcularEnergia(k, xFinal);
+            
+            // Actualizar resultados
+            document.getElementById('inputInicial').textContent = xInicial.toFixed(1);
+            document.getElementById('inputFinal').textContent = xFinal.toFixed(1);
+            document.getElementById('inputK').textContent = k;
+            document.getElementById('resultWork').textContent = trabajo.toFixed(4);
+            document.getElementById('resultForceInicial').textContent = fuerzaInicial.toFixed(2);
+            document.getElementById('resultForceFinal').textContent = fuerzaFinal.toFixed(2);
+            document.getElementById('resultEnergy').textContent = energiaFinal.toFixed(4);
+            
+            // Actualizar métrica principal
+            document.getElementById('metricWork').textContent = `${trabajo.toFixed(2)} J`;
+            
+            // Dibujar gráfico específico
+            dibujarGraficoTrabajoEspecifico(xInicial, xFinal);
+        }
+
+        function dibujarGraficoTrabajoEspecifico(xInicial, xFinal) {
+            const compresionesEspecificas = [];
+            const trabajosEspecificos = [];
+            
+            for (let x = xInicial; x <= xFinal; x += (xFinal - xInicial) / 30) {
+                compresionesEspecificas.push(x);
+                trabajosEspecificos.push(calcularTrabajoEntrePuntos(k, xInicial, x));
+            }
+            
+            if (specificWorkChart) specificWorkChart.destroy();
+            specificWorkChart = new Chart(document.getElementById('specificWorkChart'), {
+                type: 'line',
+                data: {
+                    labels: compresionesEspecificas.map(x => x.toFixed(2)),
+                    datasets: [{
+                        label: `Trabajo de ${xInicial}m a ${xFinal}m`,
+                        data: trabajosEspecificos,
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        borderWidth: 3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Trabajo para comprimir de ${xInicial}m a ${xFinal}m`
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Compresión (m)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Trabajo acumulado (J)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('kSlider').addEventListener('input', function() {
+            k = parseInt(this.value);
+            actualizarInterfaz();
+        });
+
+        document.getElementById('lengthSlider').addEventListener('input', function() {
+            naturalLength = parseFloat(this.value);
+            actualizarInterfaz();
+        });
+
+        document.getElementById('maxCompressionSlider').addEventListener('input', function() {
+            maxCompression = parseFloat(this.value);
+            document.getElementById('currentCompressionSlider').max = maxCompression;
+            if (currentCompression > maxCompression) {
+                currentCompression = maxCompression;
+                document.getElementById('currentCompressionSlider').value = currentCompression;
+            }
+            actualizarInterfaz();
+        });
+
+        document.getElementById('currentCompressionSlider').addEventListener('input', function() {
+            currentCompression = parseFloat(this.value);
+            actualizarInterfaz();
+        });
+
+        document.getElementById('xInicial').addEventListener('input', function() {
+            xInicial = parseFloat(this.value);
+        });
+
+        document.getElementById('xFinal').addEventListener('input', function() {
+            xFinal = parseFloat(this.value);
+        });
+
+        // Inicialización
+        function inicializar() {
+            actualizarInterfaz();
+            calcularTrabajoEspecifico();
+        }
+
+        // Ejecutar cuando se carga la página
+        window.addEventListener('load', inicializar);
+    </script>
+</body>
+</html>
